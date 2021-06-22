@@ -13,6 +13,7 @@ let apiUrl = {
 
     addComment: 'webservices/comment_add',
     listComment: 'webservices/comment_list',
+    contactMail: 'webservices/contact_mail',
 
 
 

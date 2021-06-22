@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from "react-router-dom";
-//import React, { Component } from "react";
-
 import apiUrl from "../constants/apiPath";
 import Helper from "../constants/helper";
 import Swal from 'sweetalert2';
-import { Modal, Button } from "react-bootstrap";
-
+import { Link } from "react-router-dom";
 import { connect } from 'react-redux';
 import { saveAuthData } from '../Services/actions/authAction';
+import Loader from './elements/Loader';
+import InfiniteScroll from "react-infinite-scroll-component";
 
 import { useTranslation } from 'react-i18next';
 
 const mapStateToProps = state => ({
-    //data: state
+    data: state
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -34,15 +32,23 @@ const Home = (props) => {
     const [articleList, setarticleList] = React.useState([]);
     const [popularArticle, setpopularArticle] = React.useState([]);
     const [oneBlockList, setoneBlockList] = React.useState([]);
-    const [activepage, setActivePage] = useState(1);
+    const [paginationData, setpaginationData] = React.useState([]);
+    const [activepage, setActivePage] = React.useState(1);
 
     const getArticleList = async (page = activepage) => {
+        setActivePage(page);
+        //props.saveAuthData({ loader: true });
         let path = apiUrl.getArticles + '?page=' + `${page}`;
         const fr = await Helper.get(path);
         const res = await fr.response.json();
         if (res.status) {
-            setarticleList(res.data);
+            //props.saveAuthData({ loader: false });
+            setarticleList([...articleList, ...res.data.docs]);
+            setpaginationData(res.data);
+            setActivePage(activepage + 1);
+
         } else {
+            props.saveAuthData({ loader: false });
             Toast.fire({
                 type: "error",
                 title: res.msg,
@@ -77,15 +83,17 @@ const Home = (props) => {
         }
     }
 
-    useEffect(() => {
-        console.log(articleList)
-    }, [articleList])
+    // useEffect(() => {
+    // console.log(articleList)
+    //console.log(paginationData);
+    //}, [articleList])
 
     useEffect(() => {
-        getArticleList();
+        getArticleList(activepage);
         getPopularArticle();
         getOneBlockList();
         //api call list
+
         return () => {
 
         }
@@ -109,8 +117,16 @@ const Home = (props) => {
                 ? temporalDivElement.innerText.substring(0, 40) + "..."
                 : temporalDivElement.innerText || "";
     }
+    function fetchMoreData() {
+        // a fake async api call like which sends
+        // 20 more records in 1.5 secs
+
+        // alert(activepage);
+        //getArticleList(activepage + 1);
+    }
     return (
         <React.Fragment>
+            {props.data.authData.loader && <Loader></Loader>}
             <div classNam="edica-loader"></div>
             <main className="blog">
                 <div className="container">
@@ -118,23 +134,34 @@ const Home = (props) => {
 
                     <div className="row">
                         <div className="col-md-8">
-                            <section>
-                                <div className="row blog-post-row">
-                                    {articleList.map((item, key) => {
-                                        return (
-                                            <div className="col-md-6 blog-post" data-aos="fade-up" key={key}>
-                                                <div className="blog-post-thumbnail-wrapper">
-                                                    <img src={process.env.REACT_APP_API_BASE_URL + item.img} alt="blog post" />
-                                                </div>
-                                                <p className="blog-post-category">{characterLimitSetMain(item.content)}</p>
-                                                <Link className="blog-post-permalink" to={{ pathname: "/single-post/" + item.slug, state: item }}>
-                                                    <h6 className="blog-post-title">{item.title}</h6>
-                                                </Link>
-                                            </div>
-                                        )
-                                    })}
 
-                                </div>
+                            <section>
+                                <InfiniteScroll
+                                    dataLength={articleList.length}
+                                    next={getArticleList}
+                                    hasMore={paginationData.hasNextPage}
+                                    loader={<div className="InfiniteScrollLoader">Loading...</div>}
+
+                                >
+
+                                    <div className="row blog-post-row "  >
+                                        {articleList.map((item, key) => {
+                                            return (
+                                                <div className="col-md-6 blog-post" data-aos="fade-up" key={key}>
+                                                    <div className="blog-post-thumbnail-wrapper">
+                                                        <img src={process.env.REACT_APP_API_BASE_URL + item.img} alt="blog post" />
+                                                    </div>
+                                                    <p className="blog-post-category">{characterLimitSetMain(item.content)}</p>
+                                                    <Link className="blog-post-permalink" to={{ pathname: "/single-post/" + item.slug, state: item }}>
+                                                        <h6 className="blog-post-title">{item.title}</h6>
+                                                    </Link>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+
+                                </InfiniteScroll>
+
                             </section>
                         </div>
                         <div className="col-md-4 sidebar" data-aos="fade-left">

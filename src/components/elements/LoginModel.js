@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button } from "react-bootstrap";
+import { Modal, Button, Spinner } from "react-bootstrap";
 import Form from "react-bootstrap/Form";
 import apiUrl from "../../constants/apiPath"
 import Helper from "../../constants/helper";
@@ -130,7 +130,17 @@ const LoginModel = (props) => {
                         </div>
                     </Modal.Body>
                     <Modal.Footer >
-                        <Button className="btn btn-warning btn-block" size="lg" type="submit" >{t('Login')}</Button>
+                        <Button className="btn btn-warning btn-block" size="lg" type="submit">
+                            {t('Login')}
+                            {/* <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                            />
+                            <span className="sr-only">Loading...</span> */}
+                        </Button>
                         <div> <a href="#" onClick={() => props.forgotShow(true)}  >{t('Forgot Password')}</a> ? </div>
                         <div> {t('Looking to')} <a href="#" onClick={() => props.signUpShow(true)}  >{t('create an account')}</a> ? </div>
                     </Modal.Footer>
